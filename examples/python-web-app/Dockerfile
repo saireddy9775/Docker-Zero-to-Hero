@@ -1,25 +1,21 @@
-FROM ubuntu:latest
+# Use a Python base image to avoid system-level restrictions
+FROM python:3.12-slim
 
-# Install Python and required tools
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv python3-full
-
-# Set up a working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Create a virtual environment
-RUN python3 -m venv /app/venv
-
-# Upgrade pip and install dependencies
+# Copy requirements.txt first to leverage Docker's layer caching
 COPY requirements.txt /app/
-RUN /app/venv/bin/python -m pip install --upgrade pip setuptools wheel && \
-    /app/venv/bin/python -m pip install -r requirements.txt
 
-# Set the PATH to use the virtual environment by default
-ENV PATH="/app/venv/bin:$PATH"
+# Install required Python packages
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt
 
-# Copy the application code
+# Copy the rest of the application code
 COPY . /app/
 
-# Command to run the application
+# Expose the application port
+EXPOSE 8000
+
+# Define the default command to run the application
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

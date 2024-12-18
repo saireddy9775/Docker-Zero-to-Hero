@@ -1,21 +1,25 @@
 FROM ubuntu:latest
 
-# Install necessary packages including Python and virtual environment tools
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv
+# Install Python and required tools
+RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-venv python3-full
 
-# Set up a virtual environment
+# Set up a working directory
 WORKDIR /app
+
+# Create a virtual environment
 RUN python3 -m venv /app/venv
 
-# Upgrade pip and install the required packages inside the virtual environment
-COPY requirements.txt /app/requirements.txt
-RUN /app/venv/bin/pip install --upgrade pip && \
-    /app/venv/bin/pip install -r /app/requirements.txt
+# Upgrade pip and install dependencies
+COPY requirements.txt /app/
+RUN /app/venv/bin/python -m pip install --upgrade pip setuptools wheel && \
+    /app/venv/bin/python -m pip install -r requirements.txt
 
-# Set the environment to use the virtual environment by default
+# Set the PATH to use the virtual environment by default
 ENV PATH="/app/venv/bin:$PATH"
 
-# Copy application code
-COPY . /app
+# Copy the application code
+COPY . /app/
 
-CMD ["manage.py", "runserver", "0.0.0.0:8000"]
+# Command to run the application
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
